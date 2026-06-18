@@ -220,15 +220,20 @@ export function getNextId(prefix: string, list: { id: string }[]): string {
   return `${prefix}${(maxNum + 1).toString().padStart(6, '0')}`
 }
 
-export function addEntryRecord(licensePlate: string, vehicleType: VehicleType, isMonthlyRental: boolean, monthlyRentalId?: string): { record: EntryExitRecord; spot: ParkingSpot | null } {
+export function addEntryRecord(licensePlate: string, vehicleType: VehicleType, isMonthlyRental: boolean, monthlyRentalId?: string): { record: EntryExitRecord; spot: ParkingSpot | null; error?: string } {
   const spots = getParkingSpots()
   const records = getEntryExitRecords()
   const now = new Date()
   const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
 
+  const existingSpot = spots.find((s) => s.licensePlate === licensePlate && s.status === 'occupied')
+  if (existingSpot) {
+    return { record: null as unknown as EntryExitRecord, spot: null, error: '该车牌车辆已在场内，请勿重复入场' }
+  }
+
   const availableSpot = spots.find((s) => s.status === 'available')
   if (!availableSpot) {
-    return { record: null as unknown as EntryExitRecord, spot: null }
+    return { record: null as unknown as EntryExitRecord, spot: null, error: '车位已满，无法入场' }
   }
 
   availableSpot.status = 'occupied'

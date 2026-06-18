@@ -118,7 +118,7 @@ const handleAddEntry = async () => {
     )
 
     if (!result.spot) {
-      ElMessage.error('车位已满，无法入场')
+      ElMessage.error(result.error || '车位已满，无法入场')
       return
     }
 
