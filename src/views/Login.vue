@@ -4,12 +4,12 @@ import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { validateLogin } from '../utils/auth'
-import { mockUsers, type MockUser } from '../mock/accounts'
+import { mockUsers } from '../mock/accounts'
 
 const router = useRouter()
 
-const REMEMBERED_USERNAME_KEY = 'smart_campus_remembered_username'
-const CURRENT_USER_KEY = 'smart_campus_current_user'
+const REMEMBERED_USERNAME_KEY = 'parking_remembered_username'
+const CURRENT_USER_KEY = 'parking_current_user'
 
 const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
@@ -56,12 +56,7 @@ const handleLogin = async () => {
         }
         localStorage.setItem(CURRENT_USER_KEY, result.user.username)
         ElMessage.success(result.message)
-
-        if (result.user.role === 'teacher') {
-          router.replace('/leave-approval')
-        } else {
-          ElMessage.info('当前仅支持教师端请假审批功能')
-        }
+        router.replace('/dashboard')
       } else {
         ElMessage.error(result.message)
       }
@@ -74,8 +69,8 @@ const handleLogin = async () => {
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h1 class="system-title">智慧校园管理系统</h1>
-      <h2 class="system-subtitle">Smart Campus Management System</h2>
+      <h1 class="system-title">停车管理工作台</h1>
+      <h2 class="system-subtitle">Parking Management Workstation</h2>
 
       <el-form
         ref="loginFormRef"
@@ -145,7 +140,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1a2a6c 0%, #2d6a9f 50%, #3a8f7a 100%);
 }
 
 .login-card {

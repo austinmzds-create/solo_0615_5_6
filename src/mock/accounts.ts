@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'teacher' | 'student'
+export type UserRole = 'admin' | 'operator'
 
 export interface MockUser {
   username: string
@@ -17,17 +17,10 @@ export const mockUsers: MockUser[] = [
     roleLabel: '管理员'
   },
   {
-    username: 'teacher',
-    password: 'teacher123',
-    name: '李老师',
-    role: 'teacher',
-    roleLabel: '教师'
-  },
-  {
-    username: 'student',
-    password: 'student123',
-    name: '张同学',
-    role: 'student',
-    roleLabel: '学生'
+    username: 'operator',
+    password: 'operator123',
+    name: '值班员小王',
+    role: 'operator',
+    roleLabel: '操作员'
   }
 ]

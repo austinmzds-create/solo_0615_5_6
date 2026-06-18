@@ -34,3 +34,11 @@ export function validateLogin(username: string, password: string): LoginResult {
     user
   }
 }
+
+export function isLoggedIn(): boolean {
+  return !!localStorage.getItem('parking_current_user')
+}
+
+export function getCurrentUsername(): string | null {
+  return localStorage.getItem('parking_current_user')
+}
