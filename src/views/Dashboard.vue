@@ -5,6 +5,7 @@ import {
   getTodayStats,
   getAreaStats,
   getEntryExitRecords,
+  getRenewalStats,
   recordTypeLabels,
   vehicleTypeLabels,
   spotStatusLabels,
@@ -17,6 +18,7 @@ const router = useRouter()
 const stats = ref(getTodayStats())
 const areaStats = ref(getAreaStats())
 const recentRecords = ref<EntryExitRecord[]>([])
+const renewalStats = ref(getRenewalStats())
 
 onMounted(() => {
   refreshData()
@@ -25,6 +27,7 @@ onMounted(() => {
 const refreshData = () => {
   stats.value = getTodayStats()
   areaStats.value = getAreaStats()
+  renewalStats.value = getRenewalStats()
   const records = getEntryExitRecords()
   recentRecords.value = records.slice(-10).reverse()
 }
@@ -41,12 +44,16 @@ const goToEntryExit = () => {
 const goToParkingOverview = () => {
   router.push('/parking-overview')
 }
+
+const goToMonthlyRental = () => {
+  router.push('/monthly-rental')
+}
 </script>
 
 <template>
   <div class="dashboard">
     <div class="stat-cards">
-      <el-card shadow="hover" class="stat-card stat-entry">
+      <el-card shadow="hover" class="stat-card stat-entry" @click="goToEntryExit" style="cursor: pointer">
         <div class="stat-icon">🚗</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.todayEntries }}</div>
@@ -54,7 +61,7 @@ const goToParkingOverview = () => {
         </div>
       </el-card>
 
-      <el-card shadow="hover" class="stat-card stat-exit">
+      <el-card shadow="hover" class="stat-card stat-exit" @click="goToEntryExit" style="cursor: pointer">
         <div class="stat-icon">🚙</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.todayExits }}</div>
@@ -62,7 +69,7 @@ const goToParkingOverview = () => {
         </div>
       </el-card>
 
-      <el-card shadow="hover" class="stat-card stat-available">
+      <el-card shadow="hover" class="stat-card stat-available" @click="goToParkingOverview" style="cursor: pointer">
         <div class="stat-icon">✅</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.availableSpots }}</div>
@@ -70,11 +77,29 @@ const goToParkingOverview = () => {
         </div>
       </el-card>
 
-      <el-card shadow="hover" class="stat-card stat-occupied">
+      <el-card shadow="hover" class="stat-card stat-occupied" @click="goToParkingOverview" style="cursor: pointer">
         <div class="stat-icon">🔴</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.occupiedSpots }}</div>
           <div class="stat-label">已占用车位</div>
+        </div>
+      </el-card>
+
+      <el-card
+        v-if="renewalStats.totalPending > 0"
+        shadow="hover"
+        class="stat-card stat-renewal"
+        @click="goToMonthlyRental"
+        style="cursor: pointer"
+      >
+        <div class="stat-icon">⏰</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ renewalStats.totalPending }}</div>
+          <div class="stat-label">
+            待续费
+            <span v-if="renewalStats.expiringCount > 0" class="sub-label">(即将到期 {{ renewalStats.expiringCount }})</span>
+            <span v-if="renewalStats.expiredCount > 0" class="sub-label sub-danger">(已过期 {{ renewalStats.expiredCount }})</span>
+          </div>
         </div>
       </el-card>
     </div>
@@ -149,7 +174,7 @@ const goToParkingOverview = () => {
 
 .stat-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -184,6 +209,22 @@ const goToParkingOverview = () => {
 .stat-exit .stat-value { color: #e6a23c; }
 .stat-available .stat-value { color: #67c23a; }
 .stat-occupied .stat-value { color: #f56c6c; }
+.stat-renewal .stat-value { color: #f56c6c; }
+
+.stat-renewal {
+  background: linear-gradient(135deg, #fef0f0 0%, #fdf6ec 100%);
+  border: 1px solid #f56c6c;
+}
+
+.sub-label {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 4px;
+}
+
+.sub-danger {
+  color: #f56c6c;
+}
 
 .stat-label {
   font-size: 14px;

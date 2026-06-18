@@ -3,6 +3,7 @@ export type ParkingSpotType = 'standard' | 'compact' | 'disabled' | 'ev' | 'vip'
 export type VehicleType = 'sedan' | 'suv' | 'truck' | 'motorcycle'
 export type RecordType = 'entry' | 'exit'
 export type RentalStatus = 'active' | 'expired' | 'pending'
+export type ExpiryStatus = 'normal' | 'expiring' | 'expired'
 
 export interface ParkingSpot {
   id: string
@@ -126,12 +127,33 @@ function generateInitialRentals(): MonthlyRental[] {
   const names = ['张伟', '李娜', '王磊', '赵敏', '陈浩', '刘洋', '孙婷', '周杰', '吴芳', '郑宇', '冯强', '陈静', '杨帆', '许丽', '黄磊']
   const rentals: MonthlyRental[] = []
   const spots = generateInitialSpots()
+  const today = new Date()
 
   for (let i = 0; i < 15; i++) {
     const spot = spots[i * 6 + 2]
-    const startDate = new Date(2026, 5, 1 + i)
-    const endDate = new Date(startDate)
-    endDate.setMonth(endDate.getMonth() + 1)
+    let startDate: Date
+    let endDate: Date
+    let status: RentalStatus = 'active'
+
+    if (i < 3) {
+      startDate = new Date(today)
+      startDate.setMonth(startDate.getMonth() - 1)
+      endDate = new Date(today)
+      endDate.setDate(endDate.getDate() - (i + 1))
+      status = 'expired'
+    } else if (i < 7) {
+      startDate = new Date(today)
+      startDate.setMonth(startDate.getMonth() - 1)
+      endDate = new Date(today)
+      endDate.setDate(endDate.getDate() + (i - 2))
+      status = 'active'
+    } else {
+      startDate = new Date(today)
+      startDate.setDate(startDate.getDate() - i * 3)
+      endDate = new Date(startDate)
+      endDate.setMonth(endDate.getMonth() + 1)
+      status = 'active'
+    }
 
     rentals.push({
       id: `M${(i + 1).toString().padStart(4, '0')}`,
@@ -144,11 +166,42 @@ function generateInitialRentals(): MonthlyRental[] {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       amount: 500,
-      status: i < 12 ? 'active' : 'expired'
+      status
     })
   }
 
   return rentals
+}
+
+export function getExpiryStatus(rental: MonthlyRental): ExpiryStatus {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const end = new Date(rental.endDate)
+  end.setHours(0, 0, 0, 0)
+  const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) return 'expired'
+  if (diffDays <= 7) return 'expiring'
+  return 'normal'
+}
+
+export function getDaysRemaining(rental: MonthlyRental): number {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const end = new Date(rental.endDate)
+  end.setHours(0, 0, 0, 0)
+  return Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+export function getRenewalStats(): { expiringCount: number; expiredCount: number; totalPending: number } {
+  const rentals = getMonthlyRentals()
+  let expiringCount = 0
+  let expiredCount = 0
+  rentals.forEach((r) => {
+    const s = getExpiryStatus(r)
+    if (s === 'expiring') expiringCount++
+    if (s === 'expired') expiredCount++
+  })
+  return { expiringCount, expiredCount, totalPending: expiringCount + expiredCount }
 }
 
 export function getParkingSpots(): ParkingSpot[] {
@@ -390,6 +443,12 @@ export const rentalStatusLabels: Record<RentalStatus, string> = {
   active: '生效中',
   expired: '已过期',
   pending: '待生效'
+}
+
+export const expiryStatusLabels: Record<ExpiryStatus, string> = {
+  normal: '正常',
+  expiring: '即将到期',
+  expired: '已过期'
 }
 
 export const AREAS_LIST = AREAS

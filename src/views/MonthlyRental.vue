@@ -11,10 +11,14 @@ import {
   rentalStatusLabels,
   spotTypeLabels,
   AREAS_LIST,
+  getExpiryStatus,
+  getDaysRemaining,
+  expiryStatusLabels,
   type MonthlyRental,
   type RentalStatus,
   type VehicleType,
-  type ParkingSpot
+  type ParkingSpot,
+  type ExpiryStatus
 } from '../mock/parking'
 
 const rentals = ref<MonthlyRental[]>([])
@@ -95,6 +99,30 @@ const statusTagType = (status: RentalStatus) => {
     pending: 'warning'
   }
   return map[status]
+}
+
+const expiryTagType = (status: ExpiryStatus) => {
+  const map: Record<ExpiryStatus, '' | 'success' | 'danger' | 'warning' | 'info'> = {
+    normal: 'success',
+    expiring: 'warning',
+    expired: 'danger'
+  }
+  return map[status]
+}
+
+const rowClassName = ({ row }: { row: MonthlyRental }) => {
+  const s = getExpiryStatus(row)
+  if (s === 'expired') return 'row-expired'
+  if (s === 'expiring') return 'row-expiring'
+  return ''
+}
+
+const expiryText = (rental: MonthlyRental) => {
+  const s = getExpiryStatus(rental)
+  const days = getDaysRemaining(rental)
+  if (s === 'expired') return `已过期 ${Math.abs(days)} 天`
+  if (s === 'expiring') return days === 0 ? '今天到期' : `剩余 ${days} 天`
+  return expiryStatusLabels[s]
 }
 
 const handleView = (row: MonthlyRental) => {
@@ -196,7 +224,7 @@ const handleRenew = (row: MonthlyRental) => {
         </div>
       </template>
 
-      <el-table :data="filteredRentals" stripe border style="width: 100%">
+      <el-table :data="filteredRentals" stripe border style="width: 100%" :row-class-name="rowClassName">
         <el-table-column prop="id" label="编号" width="100" />
         <el-table-column prop="licensePlate" label="车牌号" width="130">
           <template #default="{ row }">
@@ -214,6 +242,13 @@ const handleRenew = (row: MonthlyRental) => {
         <el-table-column label="有效期" width="200">
           <template #default="{ row }">
             {{ row.startDate }} 至 {{ row.endDate }}
+          </template>
+        </el-table-column>
+        <el-table-column label="到期提醒" width="130" align="center">
+          <template #default="{ row }">
+            <el-tag :type="expiryTagType(getExpiryStatus(row))" size="small" effect="dark">
+              {{ expiryText(row) }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="金额" width="90" align="right">
@@ -300,6 +335,11 @@ const handleRenew = (row: MonthlyRental) => {
               {{ rentalStatusLabels[currentRental.status] }}
             </el-tag>
           </el-descriptions-item>
+          <el-descriptions-item label="到期提醒" :span="2">
+            <el-tag :type="expiryTagType(getExpiryStatus(currentRental))" size="small" effect="dark">
+              {{ expiryText(currentRental) }}
+            </el-tag>
+          </el-descriptions-item>
         </el-descriptions>
       </template>
       <template #footer>
@@ -339,5 +379,21 @@ const handleRenew = (row: MonthlyRental) => {
 
 .el-table {
   margin-top: 12px;
+}
+
+:deep(.row-expired) {
+  background-color: #fef0f0 !important;
+}
+
+:deep(.row-expired:hover > td) {
+  background-color: #fde2e2 !important;
+}
+
+:deep(.row-expiring) {
+  background-color: #fdf6ec !important;
+}
+
+:deep(.row-expiring:hover > td) {
+  background-color: #faecd8 !important;
 }
 </style>
