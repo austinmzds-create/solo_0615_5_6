@@ -7,6 +7,7 @@ import {
   addEntryRecord,
   addExitRecord,
   getMonthlyRentals,
+  getTodayStats,
   recordTypeLabels,
   vehicleTypeLabels,
   type EntryExitRecord,
@@ -14,6 +15,7 @@ import {
 } from '../mock/parking'
 
 const records = ref<EntryExitRecord[]>([])
+const stats = ref(getTodayStats())
 const activeTab = ref<'all' | 'entry' | 'exit'>('all')
 const filterPlate = ref('')
 const filterDate = ref('')
@@ -49,6 +51,7 @@ onMounted(() => {
 
 const refreshData = () => {
   records.value = getEntryExitRecords()
+  stats.value = getTodayStats()
 }
 
 const monthlyRentalsMap = computed(() => {
@@ -151,6 +154,40 @@ const handleAddExit = async () => {
 
 <template>
   <div class="entry-exit-page">
+    <div class="stat-cards">
+      <el-card shadow="hover" class="stat-card stat-entry">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.todayEntries }}</div>
+          <div class="stat-label">今日入场</div>
+        </div>
+      </el-card>
+
+      <el-card shadow="hover" class="stat-card stat-exit">
+        <div class="stat-icon">🚙</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.todayExits }}</div>
+          <div class="stat-label">今日离场</div>
+        </div>
+      </el-card>
+
+      <el-card shadow="hover" class="stat-card stat-occupied">
+        <div class="stat-icon">🔴</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.notExitedVehicles }}</div>
+          <div class="stat-label">未离场车辆</div>
+        </div>
+      </el-card>
+
+      <el-card shadow="hover" class="stat-card stat-available">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.availableSpots }}</div>
+          <div class="stat-label">空余车位</div>
+        </div>
+      </el-card>
+    </div>
+
     <el-card shadow="never" class="filter-card">
       <el-form inline>
         <el-form-item label="车牌号">
@@ -258,6 +295,50 @@ const handleAddExit = async () => {
 <style scoped>
 .entry-exit-page {
   max-width: 1400px;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card :deep(.el-card__body) {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.stat-icon {
+  font-size: 36px;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-entry .stat-value { color: #409eff; }
+.stat-exit .stat-value { color: #e6a23c; }
+.stat-available .stat-value { color: #67c23a; }
+.stat-occupied .stat-value { color: #f56c6c; }
+
+.stat-label {
+  font-size: 14px;
+  color: #909399;
+  margin-top: 4px;
 }
 
 .filter-card {

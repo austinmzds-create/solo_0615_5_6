@@ -1,3 +1,5 @@
+import { calculateParkingStats, checkDuplicateEntry } from '../utils/parkingStats'
+
 export type ParkingSpotStatus = 'available' | 'occupied' | 'reserved' | 'maintenance'
 export type ParkingSpotType = 'standard' | 'compact' | 'disabled' | 'ev' | 'vip'
 export type VehicleType = 'sedan' | 'suv' | 'truck' | 'motorcycle'
@@ -279,7 +281,7 @@ export function addEntryRecord(licensePlate: string, vehicleType: VehicleType, i
   const now = new Date()
   const timestamp = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
 
-  const existingSpot = spots.find((s) => s.licensePlate === licensePlate && s.status === 'occupied')
+  const existingSpot = checkDuplicateEntry(spots, licensePlate)
   if (existingSpot) {
     return { record: null as unknown as EntryExitRecord, spot: null, error: '该车牌车辆已在场内，请勿重复入场' }
   }
@@ -374,21 +376,10 @@ export function addMonthlyRental(rental: Omit<MonthlyRental, 'id'>): { rental: M
   return { rental: newRental, spot }
 }
 
-export function getTodayStats(): { todayEntries: number; todayExits: number; availableSpots: number; totalSpots: number; occupiedSpots: number; maintenanceSpots: number } {
+export function getTodayStats(): { todayEntries: number; todayExits: number; availableSpots: number; totalSpots: number; occupiedSpots: number; maintenanceSpots: number; notExitedVehicles: number } {
   const spots = getParkingSpots()
   const records = getEntryExitRecords()
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`
-
-  const todayRecords = records.filter((r) => r.timestamp.startsWith(todayStr))
-  const todayEntries = todayRecords.filter((r) => r.type === 'entry').length
-  const todayExits = todayRecords.filter((r) => r.type === 'exit').length
-  const availableSpots = spots.filter((s) => s.status === 'available').length
-  const totalSpots = spots.length
-  const occupiedSpots = spots.filter((s) => s.status === 'occupied').length
-  const maintenanceSpots = spots.filter((s) => s.status === 'maintenance').length
-
-  return { todayEntries, todayExits, availableSpots, totalSpots, occupiedSpots, maintenanceSpots }
+  return calculateParkingStats(spots, records)
 }
 
 export function getAreaStats(): { area: string; total: number; available: number; occupied: number; maintenance: number }[] {
