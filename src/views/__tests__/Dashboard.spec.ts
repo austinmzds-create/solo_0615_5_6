@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import ElementPlus from 'element-plus'
-import Dashboard from '../Dashboard.vue'
+import Dashboard from '@/views/Dashboard.vue'
 import {
   clearAllParkingData,
   saveMonthlyRentals,
   type MonthlyRental
-} from '../../mock/parking'
+} from '@/mock/parking'
 
 const router = createRouter({
   history: createMemoryHistory(),

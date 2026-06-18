@@ -4,7 +4,7 @@ import {
   checkDuplicateEntry,
   getTodayDateString,
   type ParkingStats
-} from '../../utils/parkingStats'
+} from '@/utils/parkingStats'
 import {
   clearAllParkingData,
   getTodayStats,
@@ -16,7 +16,7 @@ import {
   saveEntryExitRecords,
   type ParkingSpot,
   type EntryExitRecord
-} from '../../mock/parking'
+} from '@/mock/parking'
 
 describe('parkingStats - 统计一致性验证', () => {
   const baseDate = new Date('2026-06-18T10:00:00.000Z')

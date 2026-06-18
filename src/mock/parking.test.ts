@@ -7,7 +7,7 @@ import {
   saveMonthlyRentals,
   clearAllParkingData,
   type MonthlyRental
-} from './parking'
+} from '@/mock/parking'
 
 describe('parking - 月租车到期提醒', () => {
   const baseDate = new Date('2026-06-18T00:00:00.000Z')
